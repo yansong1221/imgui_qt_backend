@@ -2,29 +2,29 @@ include(FetchContent)
 include(CMakePrintHelpers)
 
 if(NOT TARGET imgui)
+    # Fetch dependencies (modern CMake approach)
+    include(FetchContent)
+
+    # Dear ImGui
     FetchContent_Declare(
         imgui
-        URL "ftp://yourhost/imgui-docking.zip"
-        URL_HASH SHA512=4dae3e090f3c68148de1b37084047e0b985d8d0c92d07a0b0d05c18c714eaef273f0be7e87135aadf5da64bc7918343b5578097c480d8eef0a87e64be04a5c1f
-        DOWNLOAD_NAME "imgui-docking.zip"
-        DOWNLOAD_DIR ${CMAKE_SOURCE_DIR}/external/downloads/imgui  
+        GIT_REPOSITORY https://github.com/ocornut/imgui.git
+        GIT_TAG v1.92.0-docking
     )
-    FetchContent_GetProperties(imgui)
+    FetchContent_MakeAvailable(imgui)
 
-    if(NOT imgui_POPULATED)
-        #下载并解压imgui源码包
-        FetchContent_Populate(imgui)
+    # OpenGL (system library)
+    find_package(OpenGL REQUIRED)
 
-        set(TARGET_NAME "imgui")
-        set(SOURCE_DIR  ${imgui_SOURCE_DIR})
-        file(GLOB SOURCE_FILES ${SOURCE_DIR}/*.h ${SOURCE_DIR}/*.cpp)
-        add_library(${TARGET_NAME} ${SOURCE_FILES})
-        target_include_directories(${TARGET_NAME} PUBLIC ${SOURCE_DIR})
-        set_target_properties(${TARGET_NAME} PROPERTIES 
-            FOLDER "external"
-        )
+    # Configure ImGui with GLFW + OpenGL3 backend
+    set(IMGUI_DIR ${imgui_SOURCE_DIR})
+    file(GLOB IMGUI_SOURCES
+        "${IMGUI_DIR}/*.cpp"
+    )
+    add_library(imgui STATIC ${IMGUI_SOURCES})
 
-        #设置imgui源码路径为全局变量
-        set(IMGUI_SOURCE_DIR ${SOURCE_DIR} CACHE INTERNAL "imgui source directory")
-    endif()
+    target_include_directories(imgui PUBLIC
+    ${IMGUI_DIR}
+    ${glfw_SOURCE_DIR}/include
+    )
 endif()
